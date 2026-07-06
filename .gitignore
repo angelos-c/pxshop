@@ -33,8 +33,19 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# scraper output — contains wholesale `cost` pricing, never commit this.
+# Regenerate locally with `npm run scrape:<brand>`; only sync-stripe-catalog.mjs
+# reads it, and the deployed app itself only ever reads from Stripe.
+/src/data/*.generated.json
+
 # vercel
 .vercel
+
+# browser automation debug output
+.playwright-mcp
+
+# design-research reference screenshots (not part of the app)
+/outfit-*.png
 
 # typescript
 *.tsbuildinfo

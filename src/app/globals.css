@@ -1,26 +1,223 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-brand: var(--brand);
+  --color-brand-muted: var(--brand-muted);
+  --color-cream: var(--cream);
+  --font-sans: var(--font-outfit);
   --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-outfit);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-4xl: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --font-outfit: "Neue Haas Grotesk Text Pro", "Switzer", "Helvetica Neue",
+    Helvetica, Arial, sans-serif;
+  --cream: #ede4dd;
+  --brand: #ff0001;
+  --brand-muted: rgb(255 0 1 / 0.35);
+  --background: var(--cream);
+  --foreground: var(--brand);
+  --card: var(--cream);
+  --card-foreground: var(--brand);
+  --popover: var(--cream);
+  --popover-foreground: var(--brand);
+  --primary: var(--brand);
+  --primary-foreground: var(--cream);
+  --secondary: #e8dfd6;
+  --secondary-foreground: var(--brand);
+  --muted: #e8dfd6;
+  --muted-foreground: rgb(255 0 1 / 0.65);
+  --accent: var(--brand);
+  --accent-foreground: var(--cream);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: rgb(255 0 1 / 0.35);
+  --input: rgb(255 0 1 / 0.35);
+  --ring: var(--brand);
+  --radius: 0;
+  --chart-1: var(--brand);
+  --chart-2: #cc0001;
+  --chart-3: #990001;
+  --chart-4: #660001;
+  --chart-5: #330001;
+  --sidebar: var(--cream);
+  --sidebar-foreground: var(--brand);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: var(--cream);
+  --sidebar-accent: #e8dfd6;
+  --sidebar-accent-foreground: var(--brand);
+  --sidebar-border: rgb(255 0 1 / 0.35);
+  --sidebar-ring: var(--brand);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground overflow-x-clip;
+  }
+  html {
+    @apply font-sans scroll-smooth overflow-x-clip;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Licensed OUTFIT font — drop .woff2 files in public/fonts/ to activate.
+   Until then this @font-face silently fails to load and the stack falls
+   through to the self-hosted "Switzer" below. */
+@font-face {
+  font-family: "Neue Haas Grotesk Text Pro";
+  src: url("/fonts/NeueHaasGroteskTextPro-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Neue Haas Grotesk Text Pro";
+  src: url("/fonts/NeueHaasGroteskTextPro-Medium.woff2") format("woff2");
+  font-weight: 500 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Neue Haas Grotesk Text Pro";
+  src: url("/fonts/NeueHaasGroteskTextPro-Bold.woff2") format("woff2");
+  font-weight: 800 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*
+ * "Switzer" (Fontshare / Indian Type Foundry) — free-for-commercial-use
+ * grotesk, self-hosted here as a real stand-in for Neue Haas Grotesk Text
+ * Pro. It's a genuine Neue Haas / Basel Grotesk alternative (not a generic
+ * OS fallback like Helvetica/Arial), so it carries the brand until the
+ * licensed files land in public/fonts/. See public/fonts/SWITZER-LICENSE.txt.
+ */
+@font-face {
+  font-family: "Switzer";
+  src: url("/fonts/Switzer-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Switzer";
+  src: url("/fonts/Switzer-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Switzer";
+  src: url("/fonts/Switzer-Semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Switzer";
+  src: url("/fonts/Switzer-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Switzer";
+  src: url("/fonts/Switzer-Extrabold.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Switzer";
+  src: url("/fonts/Switzer-Black.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer utilities {
+  .footer-statement {
+    font-size: clamp(2rem, 7vw, 5.5rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+  }
+
+  .editorial-rule {
+    @apply h-px w-full bg-border;
+  }
+
+  /* Bold, gutter-aligned divider (matches hellohello's hero rule weight) —
+     use inside a .site-gutter wrapper so it lines up with the page content
+     edges instead of bleeding to the browser viewport edge. */
+  .editorial-rule-bold {
+    @apply h-[3px] w-full bg-brand md:h-[5px];
+  }
+
+  .editorial-link {
+    @apply font-bold uppercase tracking-wide transition-opacity hover:opacity-60;
+  }
+
+  .site-gutter {
+    @apply w-full px-4 md:px-6 lg:px-8;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }

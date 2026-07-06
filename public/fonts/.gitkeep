@@ -1,0 +1,8 @@
+# Drop licensed Neue Haas Grotesk Text Pro .woff2 files here:
+#
+# - NeueHaasGroteskTextPro-Regular.woff2  (400)
+# - NeueHaasGroteskTextPro-Medium.woff2   (700)
+# - NeueHaasGroteskTextPro-Bold.woff2     (800)
+#
+# OUTFIT uses this exact family. Until files are added, the site falls back to
+# Helvetica Neue / Helvetica.
