@@ -54,9 +54,9 @@
 :root {
   --font-outfit: "Neue Haas Grotesk Text Pro", "Switzer", "Helvetica Neue",
     Helvetica, Arial, sans-serif;
-  --cream: #ede4dd;
-  --brand: #ff0001;
-  --brand-muted: rgb(255 0 1 / 0.35);
+  --cream: #ffffff;
+  --brand: #0c28ff;
+  --brand-muted: rgb(12 40 255 / 0.35);
   --background: var(--cream);
   --foreground: var(--brand);
   --card: var(--cream);
@@ -68,26 +68,26 @@
   --secondary: #e8dfd6;
   --secondary-foreground: var(--brand);
   --muted: #e8dfd6;
-  --muted-foreground: rgb(255 0 1 / 0.65);
+  --muted-foreground: rgb(12 40 255 / 0.65);
   --accent: var(--brand);
   --accent-foreground: var(--cream);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: rgb(255 0 1 / 0.35);
-  --input: rgb(255 0 1 / 0.35);
+  --border: rgb(12 40 255 / 0.35);
+  --input: rgb(12 40 255 / 0.35);
   --ring: var(--brand);
   --radius: 0;
   --chart-1: var(--brand);
-  --chart-2: #cc0001;
-  --chart-3: #990001;
-  --chart-4: #660001;
-  --chart-5: #330001;
+  --chart-2: #0a20cc;
+  --chart-3: #071899;
+  --chart-4: #051066;
+  --chart-5: #020833;
   --sidebar: var(--cream);
   --sidebar-foreground: var(--brand);
   --sidebar-primary: var(--brand);
   --sidebar-primary-foreground: var(--cream);
   --sidebar-accent: #e8dfd6;
   --sidebar-accent-foreground: var(--brand);
-  --sidebar-border: rgb(255 0 1 / 0.35);
+  --sidebar-border: rgb(12 40 255 / 0.35);
   --sidebar-ring: var(--brand);
 }
 
@@ -219,5 +219,16 @@
 
   .no-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Recolors any logo image to a flat, uniform tone via its alpha
+     channel — used to unify multi-brand partner logos to one brand color. */
+  .logo-mask {
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
   }
 }
