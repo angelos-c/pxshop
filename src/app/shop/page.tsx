@@ -16,7 +16,12 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const { brand } = await searchParams;
   const brands = await getBrands();
   const activeBrand = brands.find((b) => b.toLowerCase() === brand?.toLowerCase());
-  const items = activeBrand ? await getProductsByBrand(activeBrand) : await getProducts();
+  const catalog = activeBrand ? await getProductsByBrand(activeBrand) : await getProducts();
+
+  // Surface available stock first on the "all products" listing. The catalog
+  // already arrives alphabetically sorted; a stable sort by `inStock` keeps
+  // that name ordering within each of the in-stock / out-of-stock groups.
+  const items = [...catalog].sort((a, b) => Number(b.inStock) - Number(a.inStock));
 
   return (
     <>
