@@ -221,6 +221,28 @@
     display: none;
   }
 
+  /* Seamless infinite marquee — pair with a track containing the content
+     duplicated exactly once; translating by -50% loops back to an
+     identical frame. Used for the partner logo strip on small screens. */
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee {
+    animation: marquee 24s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-marquee {
+      animation: none;
+    }
+  }
+
   /* Recolors any logo image to a flat, uniform tone via its alpha
      channel — used to unify multi-brand partner logos to one brand color. */
   .logo-mask {
