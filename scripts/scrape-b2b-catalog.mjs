@@ -198,7 +198,10 @@ async function main() {
       // the untruncated description straight off the product detail page
       // and derive name/fitment/category from that free text instead.
       const rawDescription = await fetchDetailDescription(session, item.href, item.listingDescription);
-      const stripped = stripBrandPrefix(rawDescription, brand.label, brand.prefixAliases);
+      const stripped = stripBrandPrefix(rawDescription, brand.label, brand.prefixAliases).replace(
+        /\bV,(\d)/g,
+        "V.$1"
+      );
 
       name = nameOverrides[key] ?? cleanText(stripped);
       fitment =
