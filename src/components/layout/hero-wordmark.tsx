@@ -8,7 +8,7 @@ export function HeroWordmark() {
 
   return (
     <section className="relative w-full max-w-full">
-      <div className="site-gutter pb-2 pt-6 md:pb-3 md:pt-8">
+      <div className="site-gutter pb-2 pt-1 md:pb-3">
         <div ref={containerRef} className="w-full">
           <h1
             ref={textRef}
