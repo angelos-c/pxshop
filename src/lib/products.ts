@@ -1,5 +1,6 @@
 import "server-only";
 import { unstable_cache } from "next/cache";
+import { cache } from "react";
 import { stripe } from "@/lib/stripe";
 import type Stripe from "stripe";
 import type { Product } from "@/lib/product-types";
@@ -55,7 +56,7 @@ function toProduct(stripeProduct: Stripe.Product): Product {
   };
 }
 
-const getAllProducts = unstable_cache(
+const getCachedProducts = unstable_cache(
   async (): Promise<Product[]> => {
     const products: Stripe.Product[] = [];
     for await (const product of stripe.products.list({
@@ -70,6 +71,17 @@ const getAllProducts = unstable_cache(
   ["stripe-catalog"],
   { revalidate: 300, tags: ["catalog"] }
 );
+
+/**
+ * The homepage fans out into ~7 brand showcases, each pulling from this —
+ * without request-level memoization every one of those independently pages
+ * through the *entire* Stripe catalog (dozens of list calls) in the same
+ * instant, which is enough concurrent traffic to a single endpoint to trip
+ * Stripe's rate limit. `cache()` makes every call within one render share
+ * a single in-flight fetch; `unstable_cache` above then keeps that result
+ * warm across separate requests.
+ */
+const getAllProducts = cache(getCachedProducts);
 
 export async function getProducts(): Promise<Product[]> {
   return getAllProducts();
