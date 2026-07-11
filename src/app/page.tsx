@@ -26,6 +26,7 @@ export default async function Home() {
           count={eventuri.length}
           products={featuredEventuri}
           href="/shop?brand=Eventuri"
+          heroImage="/brand-hero/eventuri.jpg"
         />
 
         <div className="editorial-rule" />
@@ -35,6 +36,7 @@ export default async function Home() {
           count={blackMamba.length}
           products={featuredBlackMamba}
           href="/shop?brand=Black+Mamba"
+          heroImage="/brand-hero/black-mamba.jpg"
         />
 
         <div className="editorial-rule" />
@@ -44,6 +46,7 @@ export default async function Home() {
           count={zrp.length}
           products={featuredZrp}
           href="/shop?brand=ZRP"
+          heroImage="/brand-hero/zrp.jpg"
         />
       </main>
       <SiteFooter />

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { ProductTile } from "@/components/shop/product-tile";
 import { useFitText } from "@/lib/use-fit-text";
@@ -10,9 +11,11 @@ type BrandShowcaseProps = {
   count: number;
   products: Product[];
   href: string;
+  /** Cool editorial shot for the brand, shown as a non-product tile leading the carousel. */
+  heroImage?: string;
 };
 
-export function BrandShowcase({ brand, count, products, href }: BrandShowcaseProps) {
+export function BrandShowcase({ brand, count, products, href, heroImage }: BrandShowcaseProps) {
   const { containerRef, textRef, fontSize } = useFitText<HTMLHeadingElement>();
 
   return (
@@ -48,6 +51,40 @@ export function BrandShowcase({ brand, count, products, href }: BrandShowcasePro
 
       <div className="relative">
         <div className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth scroll-pl-4 pl-4 pr-4 pb-2 md:gap-6 md:scroll-pl-6 md:pl-6 md:pr-6 lg:scroll-pl-8 lg:pl-8 lg:pr-8">
+          {heroImage && (
+            <Link
+              href={href}
+              className="group block w-[75vw] shrink-0 snap-start sm:w-[46vw] md:w-[31vw] lg:w-[23vw]"
+            >
+              <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
+                <Image
+                  src={heroImage}
+                  alt={`${brand} — the collection`}
+                  fill
+                  sizes="(min-width: 1024px) 25vw, 50vw"
+                  className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-brand/0 opacity-0 transition-opacity duration-300 group-hover:bg-brand/10 group-hover:opacity-100">
+                  <span className="flex size-16 items-center justify-center rounded-full bg-background text-center text-[10px] font-bold uppercase tracking-widest text-brand md:size-20 md:text-xs">
+                    Explore
+                  </span>
+                </div>
+              </div>
+
+              <div className="editorial-rule mt-0" />
+
+              <div className="flex items-start justify-between gap-4 py-3">
+                <div>
+                  <p className="text-sm font-bold text-brand md:text-base">{brand}</p>
+                  <p className="mt-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-brand md:text-xs">
+                    <span className="size-1.5 rounded-full bg-brand" />
+                    The collection
+                  </p>
+                </div>
+              </div>
+            </Link>
+          )}
+
           {products.map((product) => (
             <ProductTile
               key={product.slug}
