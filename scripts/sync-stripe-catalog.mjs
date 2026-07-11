@@ -47,6 +47,21 @@ function toStripeProductId(sku) {
   return sku.replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
+/**
+ * Stripe's Product.name has a hard 250-character limit. A handful of
+ * Milltek listings bake a full fitment note into the description text used
+ * as `name` (e.g. "...Requires S4 3.0T lower spoiler... from your local
+ * Audi dealer") and blow past that, so trim at a word boundary with an
+ * ellipsis rather than fail the sync. The untruncated text always survives
+ * in `description`, which has a much higher limit.
+ */
+function truncateName(name, maxLength = 250) {
+  if (name.length <= maxLength) return name;
+  const cut = name.slice(0, maxLength - 1);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${cut.slice(0, lastSpace > 0 ? lastSpace : maxLength - 1)}…`;
+}
+
 async function loadCatalogs() {
   const records = [];
   for (const brandKey of Object.keys(BRANDS)) {
@@ -72,6 +87,7 @@ async function fetchActiveProductIds(stripe) {
 
 async function upsertProduct(stripe, record, siteUrl) {
   const id = toStripeProductId(record.sku);
+  const name = truncateName(record.name);
   const unitAmount = Math.round(record.price * 100);
   // encodeURI guards against the odd non-ASCII character slipping into a
   // filename (a couple of SKUs have a stray Greek "Β" instead of Latin "B").
@@ -99,7 +115,7 @@ async function upsertProduct(stripe, record, siteUrl) {
   if (!existing) {
     await stripe.products.create({
       id,
-      name: record.name,
+      name,
       description,
       images,
       metadata,
@@ -113,7 +129,7 @@ async function upsertProduct(stripe, record, siteUrl) {
   }
 
   const fieldsChanged =
-    existing.name !== record.name ||
+    existing.name !== name ||
     existing.description !== description ||
     existing.images?.[0] !== images[0] ||
     existing.metadata.category !== metadata.category ||
@@ -123,7 +139,7 @@ async function upsertProduct(stripe, record, siteUrl) {
 
   if (fieldsChanged) {
     await stripe.products.update(id, {
-      name: record.name,
+      name,
       description,
       images,
       metadata,

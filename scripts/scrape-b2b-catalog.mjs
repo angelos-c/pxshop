@@ -33,6 +33,16 @@ import {
   BLACK_MAMBA_FITMENT_OVERRIDES,
 } from "./brand-overrides/black-mamba.mjs";
 import { ZRP_NAME_OVERRIDES, ZRP_FITMENT_OVERRIDES } from "./brand-overrides/zrp.mjs";
+import {
+  CTS_TURBO_NAME_OVERRIDES,
+  CTS_TURBO_FITMENT_OVERRIDES,
+} from "./brand-overrides/cts-turbo.mjs";
+import { MAXTON_NAME_OVERRIDES, MAXTON_FITMENT_OVERRIDES } from "./brand-overrides/maxton.mjs";
+import { MILLTEK_NAME_OVERRIDES, MILLTEK_FITMENT_OVERRIDES } from "./brand-overrides/milltek.mjs";
+import {
+  MISHIMOTO_NAME_OVERRIDES,
+  MISHIMOTO_FITMENT_OVERRIDES,
+} from "./brand-overrides/mishimoto.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -47,6 +57,22 @@ const OVERRIDES_BY_BRAND = {
   zrp: {
     names: ZRP_NAME_OVERRIDES,
     fitmentTags: ZRP_FITMENT_OVERRIDES,
+  },
+  "cts-turbo": {
+    names: CTS_TURBO_NAME_OVERRIDES,
+    fitmentTags: CTS_TURBO_FITMENT_OVERRIDES,
+  },
+  maxton: {
+    names: MAXTON_NAME_OVERRIDES,
+    fitmentTags: MAXTON_FITMENT_OVERRIDES,
+  },
+  milltek: {
+    names: MILLTEK_NAME_OVERRIDES,
+    fitmentTags: MILLTEK_FITMENT_OVERRIDES,
+  },
+  mishimoto: {
+    names: MISHIMOTO_NAME_OVERRIDES,
+    fitmentTags: MISHIMOTO_FITMENT_OVERRIDES,
   },
 };
 
@@ -172,10 +198,13 @@ async function main() {
       // the untruncated description straight off the product detail page
       // and derive name/fitment/category from that free text instead.
       const rawDescription = await fetchDetailDescription(session, item.href, item.listingDescription);
-      const stripped = stripBrandPrefix(rawDescription, brand.label);
+      const stripped = stripBrandPrefix(rawDescription, brand.label, brand.prefixAliases);
 
       name = nameOverrides[key] ?? cleanText(stripped);
-      fitment = fitmentTagOverrides[key] ?? extractFitmentTags(stripped, brand.label);
+      fitment =
+        fitmentTagOverrides[key] ??
+        (brandKey === "milltek" ? extractMilltekFitment(stripped) : null) ??
+        extractFitmentTags(stripped, brand.label);
       if (!fitment.length) fitment = [brand.label];
       category = classifyCategory(stripped);
     }
@@ -215,13 +244,20 @@ async function main() {
     await sleep(60);
   }
 
-  records.sort((a, b) => a.name.localeCompare(b.name));
+  const deduped = dedupeBySku(records);
+  const dupeCount = records.length - deduped.length;
+  deduped.sort((a, b) => a.name.localeCompare(b.name));
+  if (dupeCount > 0) {
+    console.log(
+      `\n${dupeCount} listing(s) shared a SKU with another listing (same physical part sold for multiple vehicles) — merged into one product each with combined fitment tags.`
+    );
+  }
 
   const outPath = path.join(ROOT, "src", "data", `${brandKey}.generated.json`);
   await fs.mkdir(path.dirname(outPath), { recursive: true });
-  await fs.writeFile(outPath, `${JSON.stringify(records, null, 2)}\n`);
+  await fs.writeFile(outPath, `${JSON.stringify(deduped, null, 2)}\n`);
 
-  console.log(`\nWrote ${records.length} products to ${path.relative(ROOT, outPath)}`);
+  console.log(`\nWrote ${deduped.length} products to ${path.relative(ROOT, outPath)}`);
   console.log(`Images — downloaded: ${downloaded}, already had: ${skippedExisting}, missing: ${missingImages}`);
 
   if (unmatched.length) {
@@ -230,6 +266,49 @@ async function main() {
     );
     for (const sku of unmatched) console.log(`  - ${sku}`);
   }
+}
+
+/**
+ * Some b2bmotorsport.com listings reuse the exact same SKU across several
+ * separate "product" entries — one per compatible vehicle — rather than one
+ * listing with multiple fitment tags (seen on Milltek, e.g. SSXFD273 sold
+ * as 4 near-identical listings for Fiesta ST pre/post-facelift, Puma ST,
+ * and a malformed 4th copy). Left as-is, later scrape rows silently
+ * overwrite earlier ones once synced to Stripe (same SKU -> same Stripe
+ * product id), so this merges them up front into one record with the union
+ * of every duplicate's fitment tags. Junk fragments produced by a
+ * malformed source listing (too short to be a real vehicle name) are
+ * dropped rather than merged in.
+ */
+function dedupeBySku(records) {
+  const groups = new Map();
+  for (const record of records) {
+    if (!groups.has(record.sku)) groups.set(record.sku, []);
+    groups.get(record.sku).push(record);
+  }
+
+  const merged = [];
+  for (const group of groups.values()) {
+    if (group.length === 1) {
+      merged.push(group[0]);
+      continue;
+    }
+    // Prefer, as the base record (name/category/price/image), a listing
+    // whose own fitment tags all look like real vehicle mentions — a
+    // malformed duplicate that fell back to generic text extraction tends
+    // to produce both a messier name and junk fitment fragments.
+    const clean = group.find((r) => r.fitment.every((tag) => VEHICLE_HINT.test(tag)));
+    const base = clean ?? group[0];
+
+    const mergedFitment = new Set();
+    for (const record of group) {
+      for (const tag of record.fitment) {
+        if (VEHICLE_HINT.test(tag)) mergedFitment.add(tag);
+      }
+    }
+    merged.push({ ...base, fitment: mergedFitment.size ? [...mergedFitment] : base.fitment });
+  }
+  return merged;
 }
 
 function titleCase(value) {
@@ -253,10 +332,17 @@ function escapeRegExp(value) {
 }
 
 /** Removes a leading "<Brand Name> " prefix, e.g. for a brand with no
- * separate name field, where the b2b description doubles as the title. */
-function stripBrandPrefix(text, brandLabel) {
-  const re = new RegExp(`^${escapeRegExp(brandLabel)}\\s+`, "i");
-  return String(text).trim().replace(re, "").trim();
+ * separate name field, where the b2b description doubles as the title.
+ * `aliases` covers brands that sometimes drop part of their label in the
+ * description (e.g. CTS Turbo SKUs titled "CTS B-Cool ..." with no "Turbo") —
+ * tried longest-first so the fuller label wins when both would match. */
+function stripBrandPrefix(text, brandLabel, aliases = []) {
+  const trimmed = String(text).trim();
+  for (const candidate of [brandLabel, ...aliases]) {
+    const re = new RegExp(`^${escapeRegExp(candidate)}\\s+`, "i");
+    if (re.test(trimmed)) return trimmed.replace(re, "").trim();
+  }
+  return trimmed;
 }
 
 /**
@@ -282,8 +368,10 @@ async function fetchDetailDescription(session, href, fallback) {
 // Words that indicate a chunk of free text is about a vehicle/engine
 // platform rather than the product itself (make/model names, or anything
 // with a digit — chassis codes, generations, displacements all have one).
+// Word-bounded on purpose — an earlier unbounded version matched "mini"
+// inside "aluMINIum" and similar false positives.
 const VEHICLE_HINT =
-  /(bmw|audi|mercedes|porsche|volkswagen|\bvw\b|seat|skoda|mini|lamborghini|toyota|ford|honda|hyundai|opel|abarth|ferrari|mclaren|ducati|golf|leon|octavia|polo|scirocco|cupra|urus|cayenne|\btt\b|\d)/i;
+  /\b(bmw|audi|mercedes|porsche|volkswagen|vw|seat|skoda|mini|lamborghini|toyota|ford|honda|hyundai|opel|abarth|ferrari|mclaren|ducati|mazda|nissan|mitsubishi|subaru|renault|peugeot|citroen|fiat|alfa|chevrolet|dodge|jeep|lexus|infiniti|acura|volvo|chrysler|cadillac|jaguar|land ?rover|kia|suzuki|isuzu|golf|leon|octavia|polo|scirocco|cupra|urus|cayenne|tt)\b|\d/i;
 
 // Descriptive "variant" noise that isn't part of the vehicle fitment and
 // isn't a standalone product-type word either — strip it outright before
@@ -349,14 +437,32 @@ const PRODUCT_TYPE_SUFFIX = new RegExp(
  * rather than only as a leading prefix (which `stripBrandPrefix` already
  * handles for the whole description).
  */
+/**
+ * Milltek descriptions consistently read "<Make/model/engine> <startYear>
+ * <endYear> <system description...>" (e.g. "Audi A3 2.0T FSI 2WD 3 door
+ * 2003 2012 Cat-back Resonated..."), so the vehicle portion can be lifted
+ * cleanly by cutting right after the year range — far more reliable here
+ * than the generic hyphen/slash-based `extractFitmentTags`, which has
+ * nothing to split on in a sentence like this. Returns null (falls back to
+ * `extractFitmentTags`) for the handful of universal/add-on listings with
+ * no vehicle + year range in the text at all.
+ */
+function extractMilltekFitment(text) {
+  const match = text.match(/^(.*?\b\d{4}\s+\d{4})\b/);
+  return match ? [match[1].trim()] : null;
+}
+
 function extractFitmentTags(text, brandLabel) {
   const normalized = text
     .replace(/[–—]/g, "-")
     .replace(FITMENT_NOISE, " ")
     .replace(/\bfor\b/gi, " - ");
 
+  // Only split on a "-"/"/" that has whitespace on at least one side — a
+  // bare hyphen with none (e.g. "RX-8", "GT-R", "Cat-back", "M-Pack") is
+  // part of a single model/product token, not a delimiter between chunks.
   const chunks = normalized
-    .split(/\s*[-/]\s*/)
+    .split(/\s+[-/]\s*|\s*[-/]\s+/)
     .map((c) => c.trim())
     .filter(Boolean);
 
@@ -415,6 +521,10 @@ function isGenericPlaceholder(baseName) {
   if (lower === "eventuri" || lower.startsWith("eventuri-")) return true;
   if (lower === "black-mamba" || lower === "blackmamba" || lower.startsWith("black-mamba-")) return true;
   if (lower === "zrp" || lower.startsWith("zrp-")) return true;
+  if (lower === "ctsturbo" || lower === "cts-turbo" || lower.startsWith("ctsturbo-")) return true;
+  if (lower === "maxton" || lower.startsWith("maxton-")) return true;
+  if (lower === "milltek" || lower.startsWith("milltek-")) return true;
+  if (lower === "mishimoto" || lower.startsWith("mishimoto-")) return true;
   if (lower === "no_image" || lower === "placeholder" || lower === "logo") return true;
   if (/^\d{6,}_[0-9a-f]{5,}/i.test(baseName)) return true;
   return false;
@@ -429,6 +539,22 @@ function parsePrice(text) {
 
 function classifyCategory(description) {
   const d = description.toLowerCase();
+  // Checked first, ahead of everything else: exhaust system descriptions
+  // (esp. Milltek's) routinely contain incidental substrings that would
+  // otherwise misfire other categories below — "valved rear silencer"
+  // contains "valve", "Requires ... lower spoiler" contains "spoiler", etc.
+  // A strong exhaust-system signal should always win over those.
+  if (
+    d.includes("cat-back") ||
+    d.includes("catback") ||
+    d.includes("resonated") ||
+    d.includes("filter-back") ||
+    d.includes("silencer") ||
+    d.includes("exhaust system") ||
+    d.includes("gpf/opf bypass") ||
+    d.includes("opf/gpf bypass")
+  )
+    return "Exhaust System";
   if (d.includes("connecting rod") || d.includes("con-rod") || d.includes("con rod")) return "Connecting Rods";
   if (d.includes("crankshaft")) return "Crankshaft";
   if (d.includes("piston")) return "Pistons";
@@ -444,25 +570,60 @@ function classifyCategory(description) {
   if (d.includes("mid-pipe") || d.includes("mid pipe") || d.includes("muffler delete") || d.includes("crossover") || d.includes("j pipe"))
     return "Exhaust Hardware";
   if (d.includes("catch can") || d.includes("pcv")) return "Catch Can";
-  if (d.includes("ignition coil")) return "Ignition Coils";
-  if (d.includes("turbo blanket")) return "Heat Management";
-  if (d.includes("radiator")) return "Cooling";
-  if (d.includes("undertray")) return "Chassis";
-  if (d.includes("boost hose") || d.includes("hose")) return "Hose";
-  if (d.includes("intercooler")) return "Intercooler";
+  if (d.includes("ignition coil") || d.includes("coilpack") || d.includes("coil pack")) return "Ignition Coils";
+  if (d.includes("turbo blanket") || d.includes("heat wrap")) return "Heat Management";
+  if (d.includes("oil filter housing") || d.includes("drain plug") || d.includes("sandwich plate") || d.includes("oil filler cap"))
+    return "Oil System";
+  if (d.includes("radiator") || d.includes("oil cooler") || d.includes("coolant") || d.includes("transmission cooler") || d.includes("thermostat"))
+    return "Cooling";
+  if (d.includes("undertray") || d.includes("battery tie-down") || d.includes("battery tie down")) return "Chassis";
+  if (d.includes("shift knob")) return "Interior";
+  if (d.includes("boost hose") || d.includes("boost tap") || d.includes("hose")) return "Hose";
+  if (d.includes("intercooler") || d.includes("fmic")) return "Intercooler";
+  if (d.includes("exhaust tip")) return "Exhaust Tips";
+  if (d.includes("splitter")) return "Splitter";
+  if (d.includes("diffuser")) return "Diffuser";
+  if (d.includes("flap")) return "Aero Flaps";
+  if (d.includes("spoiler")) return "Spoiler";
+  if (d.includes("side skirt") || d.includes("skirt")) return "Side Skirts";
+  if (d.includes("canard")) return "Canards";
+  if (d.includes("removal") && d.includes("tool")) return "Tools";
   if (
     d.includes("turbo inlet") ||
     d.includes("turbo outlet") ||
     d.includes("throttle inlet") ||
     d.includes("throttle pipe") ||
+    d.includes("throttle body boot") ||
     d.includes("discharge pipe") ||
     d.includes("turbo tube") ||
     d.includes("chargepipe") ||
     d.includes("charge pipe") ||
     d.includes("turbo flange") ||
-    d.includes("hybrid turbo")
+    d.includes("hybrid turbo") ||
+    d.includes("silicone combo kit") ||
+    d.includes("silicon combo kit") ||
+    d.includes("silicone transition") ||
+    d.includes("silicon transition") ||
+    d.includes("compressor inlet")
   )
     return "Turbo Hardware";
+  if (
+    d.includes("turbo kit") ||
+    d.includes("turbocharger") ||
+    d.includes("turbo upgrade") ||
+    d.includes("boss turbo") ||
+    d.includes("turbo set") ||
+    /\bturbo (for|replacement)\b/.test(d)
+  )
+    return "Turbo Kit";
+  if (d.includes("turbo manifold") || d.includes("resonator delete") || d.includes("noise pipe delete"))
+    return "Turbo Hardware";
+  if (d.includes("lowering spring")) return "Lowering Springs";
+  if (d.includes("lowering link") || d.includes("torque arm") || d.includes("shock mount")) return "Suspension";
+  if (d.includes("sway bar")) return "Sway Bar";
+  if (d.includes("control arm")) return "Suspension";
+  if (d.includes("transmission mount") || d.includes("engine mount")) return "Engine Mounts";
+  if (d.includes("wheel spacer") || d.includes("flush kit")) return "Wheel Spacers";
   if (d.includes("duct")) return "Duct";
   if (d.includes("airbox") || d.includes("intake")) return "Intake System";
   if (d.includes("cleaning kit")) return "Accessories";

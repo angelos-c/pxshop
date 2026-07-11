@@ -28,4 +28,31 @@ export const BRANDS = {
     // description-parsed approach as Black Mamba.
     xlsxPath: null,
   },
+  "cts-turbo": {
+    label: "CTS Turbo",
+    path: "ctsturbo",
+    imageFolder: "ctsturbo",
+    xlsxPath: null,
+    // Some SKUs are titled "CTS <thing>" without the "Turbo" — try that
+    // shorter prefix too when the full label doesn't match.
+    prefixAliases: ["CTS"],
+  },
+  maxton: {
+    label: "Maxton Design",
+    path: "maxton",
+    imageFolder: "maxton",
+    xlsxPath: null,
+  },
+  milltek: {
+    label: "Milltek",
+    path: "milltek-sport",
+    imageFolder: "milltek",
+    xlsxPath: null,
+  },
+  mishimoto: {
+    label: "Mishimoto",
+    path: "mishimoto",
+    imageFolder: "mishimoto",
+    xlsxPath: null,
+  },
 };
