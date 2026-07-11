@@ -20,33 +20,19 @@ export function BrandShowcase({ brand, count, products, href, heroImage }: Brand
 
   return (
     <section className="w-full max-w-full py-10 md:py-16">
-      <div className="site-gutter mb-8 flex flex-col gap-4 md:mb-12 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-brand">
-            Featured brand
-          </p>
-          <div ref={containerRef} className="mt-1 w-full md:w-[85vw] md:max-w-[900px]">
-            <h2
-              ref={textRef}
-              style={fontSize ? { fontSize: `${fontSize}px` } : undefined}
-              className="-mt-[0.05em] inline-block w-max whitespace-nowrap text-[clamp(2.5rem,13vw,9rem)] font-black uppercase leading-[0.9] tracking-[-0.02em] text-brand"
-            >
-              {brand}
-            </h2>
-          </div>
-        </div>
-        <Link
-          href={href}
-          className="editorial-link group flex shrink-0 items-center gap-2 text-xs md:text-sm"
-        >
-          See all {brand}
-          <span
-            aria-hidden
-            className="inline-block transition-transform group-hover:translate-x-1"
+      <div className="site-gutter mb-8 md:mb-12">
+        <p className="text-xs font-bold uppercase tracking-widest text-brand">
+          Featured brand
+        </p>
+        <div ref={containerRef} className="mt-1 w-full md:w-[85vw] md:max-w-[900px]">
+          <h2
+            ref={textRef}
+            style={fontSize ? { fontSize: `${fontSize}px` } : undefined}
+            className="-mt-[0.05em] inline-block w-max whitespace-nowrap text-[clamp(2.5rem,13vw,9rem)] font-black uppercase leading-[0.9] tracking-[-0.02em] text-brand"
           >
-            →
-          </span>
-        </Link>
+            {brand}
+          </h2>
+        </div>
       </div>
 
       <div className="relative">
@@ -72,6 +58,18 @@ export function BrandShowcase({ brand, count, products, href, heroImage }: Brand
               </div>
 
               <div className="editorial-rule mt-0" />
+
+              <div className="py-3">
+                <span className="editorial-link inline-flex items-center gap-2 text-sm font-bold md:text-base">
+                  See all {brand}
+                  <span
+                    aria-hidden
+                    className="inline-block transition-transform group-hover:translate-x-1"
+                  >
+                    →
+                  </span>
+                </span>
+              </div>
             </Link>
           )}
 

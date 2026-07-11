@@ -18,8 +18,8 @@ export function SiteFooter() {
         </div>
 
         <p className="mt-10 max-w-md text-sm leading-relaxed text-brand/80 md:mt-14">
-          Officially authorised and licensed dealer for prestigious
-          automotive enhancements. Carefully selected. Properly installed.
+          Officially authorised and licensed dealer for carefully curated
+          automotive brand collections.
         </p>
 
         <div className="editorial-rule mt-10 md:mt-14" />
@@ -38,7 +38,7 @@ export function SiteFooter() {
               Contact
             </p>
             <p className="mt-3 text-sm leading-relaxed text-brand/80">
-              hello@projectxtuning.com
+              info@projectxtuning.com
             </p>
           </div>
           <div>
@@ -66,11 +66,6 @@ export function SiteFooter() {
               <li>
                 <Link href="#" className="hover:opacity-60">
                   Instagram
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:opacity-60">
-                  Let&apos;s talk
                 </Link>
               </li>
             </ul>
