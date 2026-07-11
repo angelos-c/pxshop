@@ -72,16 +72,6 @@ export function BrandShowcase({ brand, count, products, href, heroImage }: Brand
               </div>
 
               <div className="editorial-rule mt-0" />
-
-              <div className="flex items-start justify-between gap-4 py-3">
-                <div>
-                  <p className="text-sm font-bold text-brand md:text-base">{brand}</p>
-                  <p className="mt-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-brand md:text-xs">
-                    <span className="size-1.5 rounded-full bg-brand" />
-                    The collection
-                  </p>
-                </div>
-              </div>
             </Link>
           )}
 
