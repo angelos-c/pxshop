@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { AnnouncementBanner } from "@/components/layout/announcement-banner";
 import { XStamp } from "@/components/brand/x-stamp";
 import { useCart } from "@/lib/use-cart";
 
@@ -9,19 +10,22 @@ export function SiteHeader() {
   const bagLabel = `Bag (${String(itemCount).padStart(2, "0")})`;
 
   return (
-    <header className="sticky top-0 z-50 bg-background">
-      <div className="site-gutter flex items-center justify-between py-3 md:py-4">
-        <Link href="/" className="group flex items-center gap-2">
-          <XStamp size="lg" />
-          <span className="sr-only">Project X Tuning home</span>
-        </Link>
-
-        <nav className="flex items-center gap-8">
-          <Link href="/bag" className="editorial-link text-xs md:text-base">
-            {bagLabel}
+    <>
+      <AnnouncementBanner />
+      <header className="sticky top-0 z-50 bg-background">
+        <div className="site-gutter flex items-center justify-between py-3 md:py-4">
+          <Link href="/" className="group flex items-center gap-2">
+            <XStamp size="lg" />
+            <span className="sr-only">Project X Tuning home</span>
           </Link>
-        </nav>
-      </div>
-    </header>
+
+          <nav className="flex items-center gap-8">
+            <Link href="/bag" className="editorial-link text-xs md:text-base">
+              {bagLabel}
+            </Link>
+          </nav>
+        </div>
+      </header>
+    </>
   );
 }

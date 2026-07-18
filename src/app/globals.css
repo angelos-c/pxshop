@@ -237,8 +237,16 @@
     animation: marquee 24s linear infinite;
   }
 
+  /* Slower pace for long text tracks (e.g. the announcement ticker) — the
+     default speed above was tuned for a handful of logos, and feels rushed
+     over a full sentence repeated several times. */
+  .animate-marquee-slow {
+    animation: marquee 34s linear infinite;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .animate-marquee {
+    .animate-marquee,
+    .animate-marquee-slow {
       animation: none;
     }
   }
