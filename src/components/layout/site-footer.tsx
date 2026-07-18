@@ -59,7 +59,7 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:opacity-60">
+                <Link href="/privacy" className="hover:opacity-60">
                   Privacy Policy
                 </Link>
               </li>
