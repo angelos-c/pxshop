@@ -38,7 +38,14 @@ export function SiteFooter() {
               Contact
             </p>
             <p className="mt-3 text-sm leading-relaxed text-brand/80">
-              info@projectxtuning.com
+              <a href="mailto:info@projectxtuning.com" className="hover:opacity-60">
+                info@projectxtuning.com
+              </a>
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-brand/80">
+              <a href="tel:+35799770968" className="hover:opacity-60">
+                +357 99 770968
+              </a>
             </p>
           </div>
           <div>
