@@ -54,7 +54,7 @@ export function SiteFooter() {
             </p>
             <ul className="mt-3 space-y-2 text-sm text-brand/80">
               <li>
-                <Link href="#" className="hover:opacity-60">
+                <Link href="/shipping-returns" className="hover:opacity-60">
                   Shipping & Returns
                 </Link>
               </li>
@@ -71,9 +71,14 @@ export function SiteFooter() {
             </p>
             <ul className="mt-3 space-y-2 text-sm text-brand/80">
               <li>
-                <Link href="#" className="hover:opacity-60">
+                <a
+                  href="https://www.instagram.com/projectx_tuning/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:opacity-60"
+                >
                   Instagram
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
